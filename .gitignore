@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+*.bak
+*.original
+*.log
+*.swp
+.pytest_cache/
+.venv/
+venv/
+# Do not commit private site state or captures.
+firetv_vega.json
+firetv_vega_packages_baseline.json
+version_baseline.json
+foreground_state.json
+app_metadata_cache.json
+now.png
+# Default: do not commit screenshots or captures; explicitly allow three approved, public documentation examples.
+*.png
+!src/web/htdocs/images/icons/firetv_camera_64.png
+!docs/images/vega-services.png
+!docs/images/vega-cpu-pressure.png
+!docs/images/linux-services.png
+node_modules/

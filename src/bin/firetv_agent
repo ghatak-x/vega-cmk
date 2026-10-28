@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+"""Checkmk individual program call: Linux agent via Vega VDA + local checks.
+
+Set the rule command to: /usr/bin/python3 /omd/sites/<site>/local/bin/firetv_agent
+This is the ONLY component that emits the <<<local>>> section header.
+
+Vega /etc/os-release returns NAME=OS: replace OSName: OS in the captured
+agent stream with OSName: Vega OS. This avoids the misleading cmk/os_name:OS
+host label. We deliberately never change the device's /etc/os-release.
+"""
+from __future__ import annotations
+import os
+from pathlib import Path
+import subprocess
+import sys
+from firetv_config import vda_client, site_root
+from firetv_vda import VDAError
+
+COLLECTORS = ("firetv_vega_extras.py", "firetv_vega_deep.py",
+              "firetv_screen_activity.py", "firetv_memory_pressure.py",
+              "firetv_resource_pressure.py")
+REMOTE_AGENT = "/tmp/check_mk_agent"
+
+
+
+
+def main() -> int:
+    try:
+        client = vda_client()
+        root = site_root()
+        agent = root / "share/check_mk/agents/check_mk_agent.linux"
+        if not agent.is_file():
+            raise RuntimeError("Checkmk Linux agent not found in site share directory")
+        # If already listed as connected, do NOT connect again on each poll.
+        # The shared transport handles rare stale/incorrect `-s` selection.
+        client.ensure_connected()
+        client.run("push", str(agent), REMOTE_AGENT, timeout=35)
+        output = client.shell("bash", REMOTE_AGENT, timeout=50)
+        if "<<<check_mk>>>" not in output or "<<<mem>>>" not in output:
+            raise RuntimeError("VDA returned incomplete Linux agent output")
+        lines = output.splitlines(keepends=True)
+        for line in lines:
+            sys.stdout.write("OSName: Vega OS" + ("\n" if line.endswith("\n") else "")
+                             if line.rstrip("\r\n") == "OSName: OS" else line)
+        if not output.endswith("\n"):
+            sys.stdout.write("\n")
+        sys.stdout.write("<<<local>>>\n")
+        sys.stdout.flush()
+        for filename in COLLECTORS:
+            script = root / "local/bin" / filename
+            try:
+                proc = subprocess.run(["/usr/bin/python3", str(script)], capture_output=True,
+                                      text=True, timeout=85, check=False)
+            except (OSError, subprocess.TimeoutExpired):
+                print(f'3 "Vega collector {filename}" - Collector unavailable or timed out', flush=True)
+                continue
+            # Prevent arbitrary text or logs from being forwarded as fake agent sections.
+            for line in proc.stdout.splitlines():
+                if line and line[0] in "0123" and line[1:2] == " ":
+                    print(line, flush=True)
+            if proc.returncode:
+                print(f'3 "Vega collector {filename}" - Collector exited with status {proc.returncode}', flush=True)
+        return 0
+    except (RuntimeError, VDAError) as exc:
+        # Fail closed: don't return partial/malformed Linux sections or dump VDA logs.
+        print(f"Fire TV agent collection failed: {exc}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

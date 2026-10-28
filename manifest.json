@@ -1,0 +1,12 @@
+{
+  "name": "firetv_vega_vda",
+  "title": "Fire TV Vega OS (VDA)",
+  "version": "0.0.1",
+  "version.min_required": "2.5.0",
+  "version.usable_until": null,
+  "version.packaged": "2.5.0p17",
+  "author": "Sudhir Chauhan",
+  "description": "Experimental Checkmk monitoring for Amazon Vega OS Fire TV devices using VDA: Linux metrics, packages, app versions, foreground state, memory/CPU/I-O PSI and authenticated on-demand screenshots.",
+  "download_url": "https://github.com/ghatak-x/vega-cmk",
+  "license": "GPL-2.0-only"
+}

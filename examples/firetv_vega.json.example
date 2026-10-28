@@ -1,0 +1,21 @@
+{
+  "device": "192.0.2.10:5555",
+  "vda_server_port": null,
+  "vda_path": "/home/REPLACE_ME/vega/sdk/vega-sdk/main/SDK_VERSION/bin/tools/vda",
+  "apps": {
+    "Netflix": "com.netflix.kepler",
+    "YouTube": "com.amazon.firetv.youtube",
+    "ZDF": "com.zdf.android.mediathek",
+    "ZEE5": "com.zee5.amazon",
+    "Amazon Music": "com.amazon.music.kepler",
+    "Prime Video": "com.amazon.frenchpress"
+  },
+  "process_death_window_minutes": 30,
+  "process_deaths_warn": 2,
+  "process_deaths_crit": 5,
+  "foreground_gap_seconds": 600,
+  "memory_pressure_enabled": true,
+  "cpu_pressure_enabled": true,
+  "io_pressure_enabled": true,
+  "screenshot_cooldown_seconds": 20
+}
